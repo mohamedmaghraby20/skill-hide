@@ -1,0 +1,14 @@
+#!/bin/sh
+# >>> skill-hide >>>
+# Stops a commit that adds files skill-hide hides (personal skills, .personal/),
+# for example after `git add -f`. Only files listed in .git/info/exclude count, so
+# the team's own .gitignore rules never block anything. Remove this section to turn it off.
+sp_hidden=$(git diff --cached --name-only --diff-filter=A | git check-ignore --no-index --stdin -v 2>/dev/null | grep 'info/exclude:' | cut -f2)
+if [ -n "$sp_hidden" ]; then
+  echo "skill-hide: these files are personal (hidden) but staged for commit:"
+  echo "$sp_hidden" | sed 's/^/  /'
+  echo "Unstage them with: git restore --staged -- <file>"
+  echo "Commit stopped, so your personal files stay private."
+  exit 1
+fi
+# <<< skill-hide <<<

@@ -34,7 +34,7 @@ Everything skill-hide hides is listed between two marker lines at the end of the
 # >>> skill-hide: hidden files (managed by skill-hide, do not edit) >>>
 /.personal
 /CLAUDE.local.md
-# group: addy | installed with: npx skills add addyosmani/agent-skills --skill '*'
+# group: addy | installed with: npx skills add addyosmani/agent-skills --skill '*' -a claude-code -a codex -y
 /.agents/skills/idea-refine
 /.claude/skills/idea-refine
 # <<< skill-hide: hidden files <<<
@@ -51,7 +51,7 @@ The user gives an install command, or asks for a skill and you find the command 
 
 1. **Offer global first.** If the skill isn't specific to this project, say: "Install it for you in every project instead? (`-g`) Then there's nothing to hide." If the user wants it in this project, go on.
 2. **Take a "before" picture** of `git status`, and note whether `skills-lock.json` is committed and whether team files like `CLAUDE.md` and `AGENTS.md` already have changes.
-3. **Run the install command exactly as given.** Add the installer's own "yes" flag (`-y`) only if it would otherwise wait for input you can't give.
+3. **Run the install command as given, non-interactively.** Installers usually wait for input you can't type: `npx skills add` needs `-y`, and it's best to name the agents too, e.g. `-a claude-code -a codex`. Add those if missing, and record the final command in the `# group:` line.
 4. **Take an "after" picture.** New files are those in "after" but not in "before". Changed team files are modified files that weren't modified before.
 5. **Choose the paths to hide:**
    - Inside any folder named `skills`, hide only the skill's own folder: `.agents/skills/tdd`, never `.agents` or `.agents/skills`.
@@ -85,7 +85,7 @@ Skills create files while they're used: `SPEC.md`, `tasks/plan.md`, `docs/adr/â€
    - lines this skill wants in `AGENTS.md`, `CLAUDE.md` or another committed file go in `CLAUDE.local.md` instead.
 3. **Add the same rule, short, to `CLAUDE.local.md`,** in a marked skill-hide section listing the personal skills. The rule also covers the user's global (user-level) skills, which are personal too. This is a backup that Claude Code reads every session. Other agents rely on the note in step 2 and on Task 4.
 
-Installers' update commands (e.g. `npx skills update`) replace the skill files and remove the note. Task 4 puts it back.
+Installers' update commands replace the skill files and remove the note. Don't use `npx skills update` for personal skills: they aren't in the lock file, so it skips them. Update them the Task 5 way instead.
 
 ## Task 4: check before a commit or push
 
@@ -103,15 +103,19 @@ Do this when the user asks ("is it safe to commit?", "check skill-hide"), before
 
 **Optional git hook:** offer to install [scripts/pre-commit](scripts/pre-commit) (how to install it is in the commands file). It stops any commit that adds a hidden file, even when no agent is around. Don't install it when `core.hooksPath` is set; that folder may be shared with the team.
 
+Tell the user plainly what the hook can't do: it only knows hidden paths. A skill file written in the wrong place (e.g. `tasks/todo.md` at the root, because an agent ignored the note) passes the hook. Only this check (steps 2 and 3) catches that, so it's worth asking "is it safe to commit?" before committing.
+
 ## Task 5: unhide, share, remove, uninstall
 
 - **Unhide** (a group, or some skills of it): remove their lines from the block. The files show in `git status` again.
+- **Update** (a group, or some skills of it): run the install command from its `# group:` line again (with `-y`). Then put the lock file back (Task 1, step 7), re-add the personal notes (Task 3), and check that `git status` is still clean. The hidden paths stay hidden; nothing in the block changes.
 - **Share with the team:** unhide, remove the personal note from the skill's `SKILL.md`, and run the install again normally so the lock file gets the entry. Then the user commits.
 - **Remove** (a group, or some skills of it): list what will be deleted, get a yes, then delete the files (links by themselves), remove the lines from the block, and remove their entries from the `CLAUDE.local.md` section. Never delete committed files.
 - **Uninstall skill-hide from this repo:** remove the block, the `CLAUDE.local.md` section and the hook section. Ask before deleting `.personal/`; keep it by default.
 
 ## Good to know
 
+- **Hiding works on every branch.** The exclude file isn't tied to a branch, so the hidden skills and `.personal/` stay in place, and in use, when the user switches branches.
 - **Worktrees share one exclude file.** A skill hidden in one worktree may show as missing in another. That's normal.
 - **`git clean -fdx` deletes hidden files.** Plain `git clean -fd` keeps them.
 - **The team's `.gitignore` wins over the exclude file.** A `!` line there can un-hide a path. If `git status` shows a hidden path, run `git check-ignore -v --no-index <path>` and tell the user what you find.

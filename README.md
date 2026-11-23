@@ -26,6 +26,7 @@ Just ask your agent:
 | "Hide the skills I just installed from my team" | Same, for skills that are already there. |
 | "Is it safe to commit?" | The agent checks that nothing personal is about to leak, and fixes it. |
 | "Unhide tdd" / "Share tdd with the team" | The skill becomes visible again (and goes into the lock file, if you share it). |
+| "Update my personal skills" | Reinstalls them from the saved command, keeps them hidden, puts the notes back. (Not `npx skills update`: it skips skills that aren't in the lock file.) |
 | "Remove the addy skills" | Deletes them, after showing you the list. |
 | "Add the skill-hide commit hook" | A small git check stops any commit that includes a hidden file. |
 
@@ -35,7 +36,8 @@ Just ask your agent:
 - **What the skills write** (`SPEC.md`, `tasks/plan.md`, ADRs, notes) goes into one hidden folder, `.personal/`. skill-hide adds a short note to each personal skill telling the agent to do that, so it works with any agent.
 - **`skills-lock.json`** is put back to the team's version after each install. Your skills still work, because agents read skill folders, not the lock file.
 - **Lines a skill wants in `CLAUDE.md` or `AGENTS.md`** go into `CLAUDE.local.md`, which is hidden too.
-- **Before a commit**, the agent (and the optional git hook) checks that nothing personal is staged.
+- **Before a commit**, ask "is it safe to commit?". The agent checks everything, including skill files written in the wrong place.
+- **The optional git hook** works without an agent, but it only knows hidden paths. If an agent ignores the note and writes `tasks/todo.md` at the root, the hook lets it through; only the agent's check catches that.
 
 skill-hide never commits, pushes, or edits `.gitignore`. It never deletes anything without asking first.
 
@@ -43,7 +45,9 @@ skill-hide never commits, pushes, or edits `.gitignore`. It never deletes anythi
 
 - If your team later commits the same skill, your next `git pull` replaces your copy with theirs. Ask "is it safe to commit?" before you pull, and the agent warns you.
 - `git clean -fdx` deletes hidden files. The agent can tell you the command to reinstall them.
+- Hiding works on every branch, not just the one you installed on. Your skills and `.personal/` stay in place, and your agent keeps using them, when you switch branches.
 - Worktrees of one repo share the hidden list.
+- Updating a skill replaces its files, so the note telling the agent to use `.personal/` is lost. Ask the agent to update your personal skills (it puts the note back), or ask "is it safe to commit?" afterwards.
 
 ## License
 

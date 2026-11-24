@@ -6,6 +6,8 @@ An agent skill for using AI skills **privately in a team repo**. Install any ski
 
 Works with any agent that supports skills (Claude Code, Codex, Cursor, OpenCode…). Nothing to install in the project, nothing your team has to do.
 
+> **One habit makes it reliable:** ask your agent **"is it safe to commit?"** before every commit. The optional git hook alone doesn't catch everything.
+
 ## Install
 
 Install it **globally**, so it isn't part of any project:
@@ -47,6 +49,7 @@ skill-hide never commits, pushes, or edits `.gitignore`. It never deletes anythi
 - `git clean -fdx` deletes hidden files. The agent can tell you the command to reinstall them.
 - Hiding works on every branch, not just the one you installed on. Your skills and `.personal/` stay in place, and your agent keeps using them, when you switch branches.
 - Worktrees of one repo share the hidden list.
+- **Codex:** its sandbox protects `.git/` and `.agents/`, so it asks you to approve writing there. Say yes, or it can't hide anything. It tells you plainly when hiding didn't work.
 - Updating a skill replaces its files, so the note telling the agent to use `.personal/` is lost. Ask the agent to update your personal skills (it puts the note back), or ask "is it safe to commit?" afterwards.
 
 ## License

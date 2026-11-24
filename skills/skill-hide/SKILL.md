@@ -24,6 +24,7 @@ Exact commands for every step are in [references/commands.md](references/command
 4. **Never hide a path that has committed files in it.** Check with `git ls-files -- <path>` first. If it prints anything, don't hide it.
 5. **Never undo a change to a team file that existed before the install.** It's the user's own work. Tell them instead.
 6. Work from the repo root (`git rev-parse --show-toplevel`). The exclude file is at `$(git rev-parse --git-common-dir)/info/exclude`, which is shared by all worktrees of the repo.
+6b. **If your sandbox blocks a write** (Codex, for example, protects `.git/` and `.agents/`), ask the user to approve that one write, or give them the exact change to make. Never report "safe" or "hidden" until `git status` confirms it.
 7. **End every task with a short report:** what you hid, moved or changed, and how to undo it.
 
 ## The managed block
@@ -71,7 +72,10 @@ The user gives an install command, or asks for a skill and you find the command 
 
 1. List what git can see that isn't committed (`git status --porcelain --untracked-files=all`).
 2. Point out the skill folders, their links, and `skills-lock.json` changes. Ask which skills to hide, and the group name.
-3. Do steps 5 to 10 of Task 1. For the lock file, remove only the entries of the skills being hidden, and only if the team's version doesn't have them (see the commands file).
+3. Do steps 5 to 10 of Task 1. For the lock file:
+   - If its only changes are the entries of the skills being hidden, restore the team's version (`git checkout HEAD -- skills-lock.json`).
+   - Only if the user has other changes in it, remove just those entries (see the commands file).
+   - Afterwards, `git diff HEAD -- skills-lock.json` must show no entries of hidden skills.
 4. Also look for files those skills already wrote (Task 4, step 2) and offer to move them into `.personal/`.
 
 ## Task 3: keep what the skills write private

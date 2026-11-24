@@ -18,6 +18,24 @@ $EX = "$G/info/exclude"
 
 Edit `$EX` with your file-editing tool. Change only the lines between the two skill-hide markers. If the file or the block doesn't exist, create it (see the SKILL.md example).
 
+**Never edit the block with `sed`, `echo >>`, PowerShell string replace or an ad-hoc script.** The `# group:` line contains `|`, quotes, `*` and `--` flags, which shells and regexes mangle. Use your file-editing tool, and replace whole lines:
+
+- **Add paths to a group:** insert new lines right after the group's last path line.
+- **Rewrite a group line** (e.g. a new install command): replace that one line, keeping the form `# group: <name> | installed with: <command>`.
+- **Remove a group:** delete its `# group:` line and every path line below it, up to the next `# group:` line or the end marker.
+
+Afterwards, print the block and check that a path really is hidden:
+
+```bash
+sed -n '/>>> skill-hide/,/<<< skill-hide/p' "$EX"
+git check-ignore -v --no-index -- .agents/skills/<name>     # must print a line from info/exclude
+```
+
+```powershell
+$b = Get-Content $EX; $s = [array]::IndexOf($b, ($b -match '>>> skill-hide')[0]); $e = [array]::IndexOf($b, ($b -match '<<< skill-hide')[0]); $b[$s..$e]
+git check-ignore -v --no-index -- .agents/skills/<name>
+```
+
 ## Before and after pictures (Task 1, steps 2 and 4)
 
 ```bash
